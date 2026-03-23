@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puddle to Palace</title>
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Puddle to Palace</h1>
+            <p>Turn learning challenges into fun games!</p>
+        </div>
+
+        <!-- Activity Selection Section -->
+    <div class="activity-section" id="activitySection">
+            <h2 class="activity-title">Choose a Learning Activity</h2>
+            <div class="activity-grid">
+                <button class="activity-btn" id="btn-letter-reversal" title="Practice b/d and p/q confusion">
+                    <span class="activity-icon">🔄</span>
+                    <span>Letter Reversal</span>
+                </button>
+                <button class="activity-btn" id="btn-addition" title="Practice basic addition skills">
+                    <span class="activity-icon">➕</span>
+                    <span>Basic Addition</span>
+                </button>
+                <button class="activity-btn" id="btn-sight-words" title="Recognize and practice sight words">
+                    <span class="activity-icon">📖</span>
+                    <span>Sight Words</span>
+                </button>
+                <button class="activity-btn" id="btn-counting" title="Practice counting numbers">
+                    <span class="activity-icon">🔢</span>
+                    <span>Counting Practice</span>
+                </button>
+                <button class="activity-btn" id="btn-rhyming" title="Practice rhyming skills">
+                    <span class="activity-icon">🎵</span>
+                    <span>Rhyming Skills</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="input-section" id="inputSection">
+            <textarea 
+                class="prompt-input" 
+                id="promptInput" 
+                placeholder="Describe a learning challenge or skill you'd like to practice (e.g., 'My child reverses letters like b and d')"
+                rows="3"
+            ></textarea>
+            
+            <button class="generate-btn" id="generateBtn" onclick="generateGame()">🚀 Generate Game</button>
+            
+            <!-- <div class="example-prompts">
+                <h3>Try these example prompts:</h3>
+                <div class="quick-prompt" onclick="setPrompt('My child often reverses letters like b and d')">Letter reversal (b/d confusion)</div>
+                <div class="quick-prompt" onclick="setPrompt('Help with basic addition facts')">Basic addition practice</div>
+                <div class="quick-prompt" onclick="setPrompt('Trouble remembering sight words')">Sight word recognition</div>
+                <div class="quick-prompt" onclick="setPrompt('Need to practice counting to 20')">Counting practice</div>
+                <div class="quick-prompt" onclick="setPrompt('Difficulty with rhyming words')">Rhyming skills</div>
+            </div> -->
+        </div>
+
+        <div class="game-area" id="gameArea">
+            <div id="gameContent"></div>
+            <button class="cancel-btn" onclick="showInputSection()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <script src="../src/utils.js"></script>
+    <script src="../src/dataManager.js"></script>
+    <script src="../src/uiManager.js"></script>
+    <script src="../src/gameCore.js"></script>
+    <script src="../src/game.js"></script>
+</body>
+</html>

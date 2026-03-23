@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puddle to Palace</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ffd54f 0%, #ffb300 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255,107,107,0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(76,175,80,0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 80%, rgba(33,150,243,0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #ff6b6b, #ffa726);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .input-section {
+            padding: 30px;
+            background: #f8f9ff;
+        }
+
+        .prompt-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s ease;
+        }
+
+        .prompt-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .generate-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .example-prompts {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .example-prompts h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .example-prompt {
+            display: inline-block;
+            background: #e3f2fd;
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 15px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .example-prompt:hover {
+            background: #bbdefb;
+        }
+
+        .game-area {
+            padding: 30px;
+            min-height: 400px;
+            display: none;
+        }
+
+        .game-title {
+            text-align: center;
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .game-content {
+            text-align: center;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        /* Letter Recognition Game Styles */
+        .letter-game {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .target-letter {
+            font-size: 4em;
+            font-weight: bold;
+            color: #ff6b6b;
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .letter-options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .letter-option {
+            font-size: 3em;
+            font-weight: bold;
+            padding: 20px 25px;
+            background: #f0f8ff;
+            border: 3px solid #e0e6ed;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .letter-option:hover {
+            transform: scale(1.1);
+            border-color: #667eea;
+        }
+
+        .letter-option.correct {
+            background: #c8e6c9;
+            border-color: #4CAF50;
+            animation: bounce 0.5s ease;
+        }
+
+        .letter-option.incorrect {
+            background: #ffcdd2;
+            border-color: #f44336;
+            animation: shake 0.5s ease;
+        }
+
+        .score {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        /* Enhanced mirror word game styles */
+        .mirror-words-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .word-display {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .mirror-word {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 3px solid #e0e6ed;
+        }
+
+        .mirror-letter {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 0 3px;
+            display: inline-block;
+            padding: 5px 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .jerking-letter {
+            animation: jerk 2s infinite;
+            cursor: pointer;
+            transform-origin: center;
+        }
+
+        .jerking-letter:hover {
+            animation-duration: 0.3s;
+            transform: scale(1.2);
+        }
+
+        .level-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .level-btn {
+            background: #f0f8ff;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .level-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .level-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .single-letter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .letter-card {
+            background: white;
+            border: 3px solid #e0e6ed;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .letter-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+        }
+
+        .letter-card-content {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            background: #e0e6ed;
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .selected-letter {
+            background: #c8e6c9 !important;
+            border: 3px solid #4CAF50;
+            animation: selectedPulse 0.5s ease;
+        }
+
+        .wrong-letter {
+            background: #ffcdd2 !important;
+            border: 3px solid #f44336;
+            animation: shake 0.5s ease;
+        }
+
+        .color-1 { 
+            background: linear-gradient(135deg, #ff6b9d, #ff8a80); 
+            border: 3px solid #ff1744;
+        }
+        .color-2 { 
+            background: linear-gradient(135deg, #4fc3f7, #29b6f6); 
+            border: 3px solid #0277bd;
+        }
+        .color-3 { 
+            background: linear-gradient(135deg, #81c784, #66bb6a); 
+            border: 3px solid #388e3c;
+        }
+        .color-4 { 
+            background: linear-gradient(135deg, #ffb74d, #ffa726); 
+            border: 3px solid #f57900;
+        }
+        .color-5 { 
+            background: linear-gradient(135deg, #ba68c8, #ab47bc); 
+            border: 3px solid #7b1fa2;
+        }
+        .color-6 { 
+            background: linear-gradient(135deg, #4db6ac, #26a69a); 
+            border: 3px solid #00695c;
+        }
+
+        .letter-card-content {
+            font-size: 4em;
+            font-weight: 900;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 15px 20px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .letter-card-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.3), transparent);
+            border-radius: 15px;
+        }
+
+        .mirror-letter {
+            font-size: 3em;
+            font-weight: 900;
+            margin: 0 5px;
+            display: inline-block;
+            padding: 10px 15px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .mirror-letter::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.2), transparent);
+            border-radius: 12px;
+        }
+
+        .letter-card {
+            background: white;
+            border: none;
+            border-radius: 20px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .letter-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.3));
+            border-radius: 20px;
+            z-index: 1;
+        }
+
+        .letter-card-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .mirror-word {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mirror-word::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.4));
+            border-radius: 20px;
+            z-index: 1;
+        }
+
+        .instruction {
+            font-size: 1.3em;
+            color: #667eea;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .target-highlight {
+            background: linear-gradient(45deg, #ff6b6b, #ffa726);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        @keyframes jerk {
+            0%, 100% { transform: rotate(0deg) translate(0px, 0px) scale(1); }
+            10% { transform: rotate(-3deg) translate(-2px, -1px) scale(1.02); }
+            20% { transform: rotate(2deg) translate(1px, 2px) scale(0.98); }
+            30% { transform: rotate(-2deg) translate(-1px, 1px) scale(1.01); }
+            40% { transform: rotate(3deg) translate(2px, -1px) scale(0.99); }
+            50% { transform: rotate(-1deg) translate(-2px, -2px) scale(1.02); }
+            60% { transform: rotate(2deg) translate(1px, 1px) scale(0.97); }
+            70% { transform: rotate(-2deg) translate(-1px, 2px) scale(1.01); }
+            80% { transform: rotate(1deg) translate(2px, -1px) scale(0.99); }
+            90% { transform: rotate(-3deg) translate(-1px, -1px) scale(1.01); }
+        }
+
+        @keyframes selectedPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% { transform: translate3d(0,0,0); }
+            40%, 43% { transform: translate3d(0,-15px,0); }
+            70% { transform: translate3d(0,-7px,0); }
+            90% { transform: translate3d(0,-2px,0); }
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .new-game-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        /* Custom Notification Styles */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        .notification {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transform: translateX(100%);
+            animation: slideIn 0.5s ease forwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+
+        .notification.level-up {
+            background: linear-gradient(135deg, #ff6b6b, #ffa726);
+        }
+
+        .notification.info {
+            background: linear-gradient(135deg, #29b6f6, #0277bd);
+        }
+
+        .notification::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);
+            border-radius: 15px;
+        }
+
+        .notification-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .notification-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notification-message {
+            font-size: 1em;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .notification-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0.7;
+            z-index: 3;
+        }
+
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .notification.sliding-out {
+            animation: slideOut 0.3s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Puddle to Palace</h1>
+            <p>Turn learning challenges into fun games!</p>
+        </div>
+
+        <div class="input-section" id="inputSection">
+            <textarea 
+                class="prompt-input" 
+                id="promptInput" 
+                placeholder="Describe a learning challenge or skill you'd like to practice (e.g., 'My child reverses letters like b and d')"
+                rows="3"
+            ></textarea>
+            
+            <button class="generate-btn" onclick="generateGame()">🚀 Generate Game</button>
+            
+            <div class="example-prompts">
+                <h3>Try these example prompts:</h3>
+                <div class="example-prompt" onclick="setPrompt('My child often reverses letters like b and d')">Letter reversal (b/d confusion)</div>
+                <div class="example-prompt" onclick="setPrompt('Help with basic addition facts')">Basic addition practice</div>
+                <div class="example-prompt" onclick="setPrompt('Trouble remembering sight words')">Sight word recognition</div>
+                <div class="example-prompt" onclick="setPrompt('Need to practice counting to 20')">Counting practice</div>
+                <div class="example-prompt" onclick="setPrompt('Difficulty with rhyming words')">Rhyming skills</div>
+            </div>
+        </div>
+
+        <div class="game-area" id="gameArea">
+            <button class="back-btn" onclick="showInputSection()">← Back to Generator</button>
+            <div id="gameContent"></div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <script>
+        const gameTemplates = {
+            'letter_reversal': {
+                title: '🔄 Letter Direction Detective',
+                description: 'Help identify the correct letter orientation!',
+                gameType: 'letter_recognition'
+            },
+            'addition': {
+                title: '➕ Math Adventure',
+                description: 'Solve addition problems to score points!',
+                gameType: 'math_game'
+            },
+            'sight_words': {
+                title: '👁️ Word Spotter',
+                description: 'Quickly identify common sight words!',
+                gameType: 'word_recognition'
+            },
+            'counting': {
+                title: '🔢 Number Counter',
+                description: 'Practice counting with interactive activities!',
+                gameType: 'counting_game'
+            },
+            'rhyming': {
+                title: '🎵 Rhyme Time',
+                description: 'Find words that sound alike!',
+                gameType: 'rhyme_game'
+            }
+        };
+
+        let currentGame = null;
+        let gameScore = 0;
+        let currentLevel = 1;
+        let levelsCompleted = 0; // Track completed levels for progression
+
+        function setPrompt(text) {
+            document.getElementById('promptInput').value = text;
+        }
+
+        function analyzePrompt(prompt) {
+            const lowercasePrompt = prompt.toLowerCase();
+            
+            if (lowercasePrompt.includes('letter') && (lowercasePrompt.includes('reverse') || lowercasePrompt.includes('b') || lowercasePrompt.includes('d'))) {
+                return 'letter_reversal';
+            } else if (lowercasePrompt.includes('addition') || lowercasePrompt.includes('add') || lowercasePrompt.includes('math')) {
+                return 'addition';
+            } else if (lowercasePrompt.includes('sight word') || lowercasePrompt.includes('word')) {
+                return 'sight_words';
+            } else if (lowercasePrompt.includes('count') || lowercasePrompt.includes('number')) {
+                return 'counting';
+            } else if (lowercasePrompt.includes('rhyme') || lowercasePrompt.includes('rhyming')) {
+                return 'rhyming';
+            } else {
+                return 'letter_reversal'; // Default game
+            }
+        }
+
+        function generateGame() {
+            const prompt = document.getElementById('promptInput').value.trim();
+            if (!prompt) {
+                showNotification('Missing Input', 'Please enter a learning challenge or goal!', 'info');
+                return;
+            }
+
+            const gameType = analyzePrompt(prompt);
+            const template = gameTemplates[gameType];
+            
+            currentGame = gameType;
+            gameScore = 0;
+            currentLevel = 1;
+            letterGameLevel = 1; // Reset to beginner level
+            selectedCount = 0;
+            totalTargets = 0;
+            currentTargetLetter = '';
+
+            document.getElementById('inputSection').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            
+            createGame(template);
+        }
+
+        function createGame(template) {
+            const gameContent = document.getElementById('gameContent');
+            gameContent.innerHTML = `
+                <div class="game-title">${template.title}</div>
+                <div class="game-content">
+                    <p style="margin-bottom: 20px;">${template.description}</p>
+                    <div id="gamePlayArea"></div>
+                </div>
+            `;
+
+            // Small delay to ensure DOM is ready
+            setTimeout(() => {
+                switch (template.gameType) {
+                    case 'letter_recognition':
+                        createLetterGame();
+                        break;
+                    case 'math_game':
+                        createMathGame();
+                        break;
+                    case 'word_recognition':
+                        createWordGame();
+                        break;
+                    case 'counting_game':
+                        createCountingGame();
+                        break;
+                    case 'rhyme_game':
+                        createRhymeGame();
+                        break;
+                }
+            }, 50);
+        }
+
+        let currentTargetLetter = '';
+        let gameWords = [];
+        let selectedCount = 0;
+        let totalTargets = 0;
+        let letterGameLevel = 1; // 1 = single letters, 2 = words, 3 = numbers
+        let solvedCases = []; // Track solved confusing pairs to avoid repetition
+        let solvedMirrorWords = []; // Track solved mirror word pairs to avoid repetition
+
+        let letterGameRetryCount = 0;
+
+        function createLetterGame() {
+            letterGameLevel = letterGameLevel || 1;
+            
+            const gamePlayArea = document.getElementById('gamePlayArea');
+            if (!gamePlayArea) {
+                console.error('gamePlayArea element not found, retrying...');
+                // Limit retries to prevent infinite loops
+                if (letterGameRetryCount < 5) {
+                    letterGameRetryCount++;
+                    setTimeout(() => createLetterGame(), 300);
+                } else {
+                    console.error('Failed to find gamePlayArea after 5 retries, stopping');
+                    letterGameRetryCount = 0;
+                }
+                return;
+            }
+            
+            // Reset retry count on success
+            letterGameRetryCount = 0;
+            
+            // Level selector
+            const levelSelector = `
+                <div class="level-selector">
+                    <button class="level-btn ${letterGameLevel === 1 ? 'active' : ''}" onclick="switchLetterLevel(1)">
+                        📝 Single Letters
+                    </button>
+                    <button class="level-btn ${letterGameLevel === 2 ? 'active' : ''}" onclick="switchLetterLevel(2)">
+                        🔤 Words
+                    </button>
+                    <button class="level-btn ${letterGameLevel === 3 ? 'active' : ''}" onclick="switchLetterLevel(3)">
+                        🔢 Numbers
+                    </button>
+                </div>
+            `;
+            
+            gamePlayArea.innerHTML = `
+                <div class="mirror-words-container">
+                    <div class="score">Score: ${gameScore}</div>
+                    ${levelSelector}
+                    <div id="gameContent"></div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${(selectedCount / Math.max(totalTargets, 1)) * 100}%"></div>
+                    </div>
+                    <button class="new-game-btn" onclick="createLetterGame()">New Challenge</button>
+                </div>
+            `;
+            
+            // Small delay to ensure DOM is updated
+            setTimeout(() => {
+                // Generate content based on level
+                switch(letterGameLevel) {
+                    case 1:
+                        createSingleLetterLevel();
+                        break;
+                    case 2:
+                        createWordLevel();
+                        break;
+                    case 3:
+                        createNumberLevel();
+                        break;
+                }
+            }, 10);
+        }
+
+        function switchLetterLevel(level) {
+            letterGameLevel = level;
+            selectedCount = 0;
+            totalTargets = 0;
+            currentTargetLetter = '';
+            levelsCompleted = 0; // Reset progress when manually switching
+            solvedCases = []; // Reset solved letter cases
+            solvedMirrorWords = []; // Reset solved mirror words
+            createLetterGame();
+        }
+
+        function createSingleLetterLevel() {
+            const gameContent = document.getElementById('gameContent');
+            if (!gameContent) {
+                console.error('gameContent element not found');
+                return;
+            }
+            
+            const confusingPairs = [
+                { pair: ['b', 'd'], colors: ['color-1', 'color-2'] },
+                { pair: ['p', 'q'], colors: ['color-3', 'color-4'] },
+                { pair: ['u', 'n'], colors: ['color-5', 'color-6'] },
+                { pair: ['m', 'w'], colors: ['color-1', 'color-3'] },
+                { pair: ['f', 't'], colors: ['color-2', 'color-5'] },
+                { pair: ['6', '9'], colors: ['color-4', 'color-6'] }
+            ];
+            
+            // Filter out already solved cases
+            const availablePairs = confusingPairs.filter(pair => 
+                !solvedCases.some(solved => 
+                    (solved.includes(pair.pair[0]) && solved.includes(pair.pair[1]))
+                )
+            );
+            
+            // If all cases are solved, reset the solved cases
+            if (availablePairs.length === 0) {
+                solvedCases = [];
+                availablePairs.push(...confusingPairs);
+            }
+            
+            const currentSet = availablePairs[Math.floor(Math.random() * availablePairs.length)];
+            currentTargetLetter = currentSet.pair[Math.floor(Math.random() * 2)];
+            
+            // Add this case to solved cases
+            solvedCases.push(currentSet.pair);
+            
+            // Random total letters (3-8 total)
+            const totalLetters = 3 + Math.floor(Math.random() * 6); // 3-8 total letters
+            const targetCount = Math.min(Math.ceil(totalLetters * 0.4), Math.floor(totalLetters * 0.6)); // 40-60% targets
+            const distractorCount = totalLetters - targetCount;
+            
+            // Create array of letters with multiple instances
+            const letterArray = [];
+            
+            // Add target letters
+            for (let i = 0; i < targetCount; i++) {
+                letterArray.push({
+                    letter: currentTargetLetter,
+                    isTarget: true,
+                    color: currentSet.colors[currentSet.pair.indexOf(currentTargetLetter)]
+                });
+            }
+            
+            // Add distractor (mirror) letters
+            const distractorLetter = currentSet.pair.find(l => l !== currentTargetLetter);
+            for (let i = 0; i < distractorCount; i++) {
+                letterArray.push({
+                    letter: distractorLetter,
+                    isTarget: false,
+                    color: currentSet.colors[currentSet.pair.indexOf(distractorLetter)]
+                });
+            }
+            
+            // Shuffle array
+            for (let i = letterArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [letterArray[i], letterArray[j]] = [letterArray[j], letterArray[i]];
+            }
+            
+            totalTargets = targetCount;
+            selectedCount = 0;
+            
+            gameContent.innerHTML = `
+                <div class="instruction">
+                    Click all the <span class="target-highlight">${currentTargetLetter}</span> letters!
+                    <br><small>Find ${targetCount} of them (${totalLetters} total letters)</small>
+                </div>
+                <div class="single-letter-grid">
+                    ${letterArray.map((item, index) => `
+                        <div class="letter-card" onclick="selectSingleLetter(this, '${item.letter}', ${index})">
+                            <div class="letter-card-content ${item.color} ${Math.random() < 0.6 ? 'jerking-letter' : ''}">${item.letter}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function createWordLevel() {
+            const gameContent = document.getElementById('gameContent');
+            if (!gameContent) {
+                console.error('gameContent element not found');
+                return;
+            }
+            
+            // Mirror word pairs (semordnilaps) - words that form other words when reversed
+            const mirrorWordPairs = [
+                { word: 'stressed', mirror: 'desserts' },
+                { word: 'tool', mirror: 'loot' },
+                { word: 'evil', mirror: 'live' },
+                { word: 'lever', mirror: 'revel' },
+                { word: 'level', mirror: 'level' },
+                { word: 'flow', mirror: 'wolf' },
+                { word: 'stop', mirror: 'pots' },
+                { word: 'drawer', mirror: 'reward' },
+                { word: 'sleep', mirror: 'peels' },
+                { word: 'doom', mirror: 'mood' }
+            ];
+            
+            // Filter out already solved mirror word pairs
+            const availablePairs = mirrorWordPairs.filter(pair => 
+                !solvedMirrorWords.some(solved => 
+                    solved.word === pair.word || solved.mirror === pair.mirror
+                )
+            );
+            
+            // If all pairs are solved, reset the solved list
+            if (availablePairs.length === 0) {
+                solvedMirrorWords = [];
+                availablePairs.push(...mirrorWordPairs);
+            }
+            
+            // Select a random mirror word pair
+            const selectedPair = availablePairs[Math.floor(Math.random() * availablePairs.length)];
+            
+            // Add this pair to solved list
+            solvedMirrorWords.push(selectedPair);
+            
+            // Create array with original word, its mirror, and some distractors
+            const allWords = [selectedPair.word, selectedPair.mirror];
+            
+            // Add some distractor words
+            const distractors = mirrorWordPairs
+                .filter(pair => pair !== selectedPair)
+                .slice(0, 2)
+                .map(pair => Math.random() < 0.5 ? pair.word : pair.mirror);
+            
+            allWords.push(...distractors);
+            
+            // Shuffle the words
+            for (let i = allWords.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allWords[i], allWords[j]] = [allWords[j], allWords[i]];
+            }
+            
+            selectedCount = 0;
+            totalTargets = 2; // Both words in the pair
+            
+            gameContent.innerHTML = `
+                <div class="instruction">
+                    Find the two words that are mirrors of each other!
+                    <br><small>Hint: One word spelled backwards is the other word</small>
+                </div>
+                <div class="word-display">
+                    ${allWords.map((word, index) => `
+                        <div class="mirror-word" onclick="selectMirrorWord(this, '${word}', '${selectedPair.word}', '${selectedPair.mirror}')">
+                            ${word.split('').map(letter => `
+                                <span class="mirror-letter color-${(index % 6) + 1}">${letter}</span>
+                            `).join('')}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function createNumberLevel() {
+            const gameContent = document.getElementById('gameContent');
+            if (!gameContent) {
+                console.error('gameContent element not found');
+                return;
+            }
+            
+            const numberPairs = [
+                { pair: ['6', '9'], colors: ['color-1', 'color-2'] },
+                { pair: ['2', '5'], colors: ['color-3', 'color-4'] },
+                { pair: ['1', '7'], colors: ['color-5', 'color-6'] }
+            ];
+            
+            const currentSet = numberPairs[Math.floor(Math.random() * numberPairs.length)];
+            currentTargetLetter = currentSet.pair[Math.floor(Math.random() * 2)];
+            
+            // Create number sequences or math problems
+            const numberSequences = [];
+            for (let i = 0; i < 4; i++) {
+                let sequence = '';
+                for (let j = 0; j < 4 + Math.floor(Math.random() * 3); j++) {
+                    sequence += Math.random() < 0.4 ? currentTargetLetter : 
+                               Math.random() < 0.5 ? currentSet.pair.find(n => n !== currentTargetLetter) :
+                               String(Math.floor(Math.random() * 10));
+                }
+                numberSequences.push(sequence);
+            }
+            
+            selectedCount = 0;
+            totalTargets = 0;
+            
+            gameContent.innerHTML = `
+                <div class="instruction">
+                    Click all the <span class="target-highlight">${currentTargetLetter}</span> numbers!
+                </div>
+                <div class="word-display number-game">
+                    ${generateNumberSequences(numberSequences, currentSet.pair, currentSet.colors)}
+                </div>
+            `;
+        }
+
+        function generateNumberSequences(sequences, confusingNumbers, colors) {
+            totalTargets = 0;
+            
+            return sequences.map(sequence => {
+                const numbers = sequence.split('').map((number, index) => {
+                    const colorIndex = confusingNumbers.indexOf(number);
+                    const isTarget = number === currentTargetLetter;
+                    if (isTarget) totalTargets++;
+                    
+                    const colorClass = colorIndex !== -1 ? colors[colorIndex] : '';
+                    const jerkingClass = Math.random() < 0.7 ? 'jerking-letter' : '';
+                    
+                    return `<span 
+                        class="mirror-letter ${colorClass} ${jerkingClass}" 
+                        onclick="selectLetter(this, '${number}')"
+                        data-number="${number}"
+                    >${number}</span>`;
+                }).join('');
+                
+                return `<div class="mirror-word">${numbers}</div>`;
+            }).join('');
+        }
+
+        function selectSingleLetter(element, letter, index) {
+            const letterElement = element.querySelector('.letter-card-content');
+            if (letterElement) {
+                letterElement.classList.remove('jerking-letter');
+            }
+            
+            if (letter === currentTargetLetter && !element.classList.contains('selected-letter')) {
+                element.classList.add('selected-letter');
+                selectedCount++;
+                gameScore += 15; // Higher points for single letter mode
+                
+                // Update score and progress with null checks
+                const scoreElement = document.querySelector('.score');
+                if (scoreElement) {
+                    scoreElement.textContent = `Score: ${gameScore}`;
+                }
+                
+                const progressElement = document.querySelector('.progress-fill');
+                if (progressElement) {
+                    progressElement.style.width = `${(selectedCount / totalTargets) * 100}%`;
+                }
+                
+                if (selectedCount === totalTargets) {
+                    setTimeout(() => {
+                        levelsCompleted++;
+                        showNotification('Perfect!', `You found all ${totalTargets} "${currentTargetLetter}" letters!`, 'success');
+                        
+                        // Auto-advance to next level after 5 completed levels
+                        if (levelsCompleted >= 5 && letterGameLevel === 1) {
+                            letterGameLevel = 2;
+                            levelsCompleted = 0;
+                            setTimeout(() => {
+                                showNotification('Level Up!', "You've mastered single letters. Now try mirror words!", 'level-up');
+                            }, 1000);
+                        } else if (levelsCompleted >= 5 && letterGameLevel === 2) {
+                            letterGameLevel = 3;
+                            levelsCompleted = 0;
+                            setTimeout(() => {
+                                showNotification('Level Up!', "You've mastered mirror words. Now try numbers!", 'level-up');
+                            }, 1000);
+                        }
+                        
+                        // Recreate the game if gamePlayArea is missing
+                        const gamePlayArea = document.getElementById('gamePlayArea');
+                        if (gamePlayArea) {
+                            createLetterGame();
+                        } else {
+                            // Recreate the entire game structure
+                            const template = gameTemplates[currentGame];
+                            if (template) {
+                                createGame(template);
+                            }
+                        }
+                    }, 500);
+                }
+            } else if (letter !== currentTargetLetter) {
+                element.classList.add('wrong-letter');
+                setTimeout(() => {
+                    element.classList.remove('wrong-letter');
+                    if (letterElement) {
+                        letterElement.classList.add('jerking-letter');
+                    }
+                }, 600);
+            }
+        }
+
+        function generateMirrorWords(words, confusingLetters, colors) {
+            totalTargets = 0;
+            
+            return words.map(word => {
+                const letters = word.split('').map((letter, index) => {
+                    const colorIndex = confusingLetters.indexOf(letter);
+                    const isTarget = letter === currentTargetLetter;
+                    if (isTarget) totalTargets++;
+                    
+                    const colorClass = colorIndex !== -1 ? colors[colorIndex] : '';
+                    const jerkingClass = Math.random() < 0.7 ? 'jerking-letter' : ''; // 70% chance of jerking
+                    
+                    return `<span 
+                        class="mirror-letter ${colorClass} ${jerkingClass}" 
+                        onclick="selectLetter(this, '${letter}')"
+                        data-letter="${letter}"
+                        data-word-index="${words.indexOf(word)}"
+                        data-letter-index="${index}"
+                    >${letter}</span>`;
+                }).join('');
+                
+                return `<div class="mirror-word">${letters}</div>`;
+            }).join('');
+        }
+
+        function selectLetter(element, letter) {
+            // Remove jerking animation when clicked
+            element.classList.remove('jerking-letter');
+            
+            if (letter === currentTargetLetter) {
+                if (!element.classList.contains('selected-letter')) {
+                    element.classList.add('selected-letter');
+                    selectedCount++;
+                    gameScore += 10;
+                    
+                    // Update score and progress display with null checks
+                    const scoreElement = document.querySelector('.score');
+                    if (scoreElement) {
+                        scoreElement.textContent = `Score: ${gameScore}`;
+                    }
+                    
+                    const progressElement = document.querySelector('.progress-fill');
+                    if (progressElement) {
+                        progressElement.style.width = `${(selectedCount / totalTargets) * 100}%`;
+                    }
+                    
+                    // Check if all target letters are found
+                    if (selectedCount === totalTargets) {
+                        setTimeout(() => {
+                            const contentType = letterGameLevel === 3 ? 'numbers' : 'letters';
+                            showNotification('Great Job!', `You found all ${totalTargets} "${currentTargetLetter}" ${contentType}!`, 'success');
+                            
+                            // Ensure proper game structure exists
+                            const gamePlayArea = document.getElementById('gamePlayArea');
+                            if (gamePlayArea) {
+                                setTimeout(() => createLetterGame(), 1500);
+                            } else {
+                                // Recreate the entire game structure
+                                const template = gameTemplates[currentGame];
+                                if (template) {
+                                    setTimeout(() => createGame(template), 1500);
+                                }
+                            }
+                        }, 500);
+                    }
+                }
+            } else {
+                element.classList.add('wrong-letter');
+                setTimeout(() => {
+                    element.classList.remove('wrong-letter');
+                    element.classList.add('jerking-letter'); // Resume jerking after wrong click
+                }, 600);
+            }
+        }
+
+        function selectMirrorWord(element, selectedWord, word1, word2) {
+            // Check if this word is one of the correct mirror pair
+            if (selectedWord === word1 || selectedWord === word2) {
+                if (!element.classList.contains('selected-letter')) {
+                    element.classList.add('selected-letter');
+                    selectedCount++;
+                    gameScore += 20; // Higher score for word pairs
+                    
+                    // Update score display
+                    const scoreElement = document.querySelector('.score');
+                    if (scoreElement) {
+                        scoreElement.textContent = `Score: ${gameScore}`;
+                    }
+                    
+                    // Update progress
+                    const progressElement = document.querySelector('.progress-fill');
+                    if (progressElement) {
+                        progressElement.style.width = `${(selectedCount / totalTargets) * 100}%`;
+                    }
+                    
+                    // Check if both words are found
+                    if (selectedCount === totalTargets) {
+                        setTimeout(() => {
+                            levelsCompleted++;
+                            showNotification('Excellent!', `You found the mirror word pair: "${word1}" ↔ "${word2}"!`, 'success');
+                            
+                            // Auto-advance after 5 mirror word levels
+                            if (levelsCompleted >= 5 && letterGameLevel === 2) {
+                                letterGameLevel = 3;
+                                levelsCompleted = 0;
+                                setTimeout(() => {
+                                    showNotification('Level Up!', "You've mastered mirror words. Now try numbers!", 'level-up');
+                                }, 1000);
+                            }
+                            
+                            // Ensure proper game structure exists
+                            const gamePlayArea = document.getElementById('gamePlayArea');
+                            if (gamePlayArea) {
+                                setTimeout(() => createLetterGame(), 1500);
+                            } else {
+                                // Recreate the entire game structure
+                                const template = gameTemplates[currentGame];
+                                if (template) {
+                                    setTimeout(() => createGame(template), 1500);
+                                }
+                            }
+                        }, 500);
+                    }
+                }
+            } else {
+                // Wrong word - show feedback
+                element.classList.add('wrong-letter');
+                setTimeout(() => {
+                    element.classList.remove('wrong-letter');
+                }, 600);
+            }
+        }
+
+        function createMathGame() {
+            const num1 = Math.floor(Math.random() * 10) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            const correctAnswer = num1 + num2;
+            
+            const wrongAnswers = [
+                correctAnswer + 1,
+                correctAnswer - 1,
+                correctAnswer + 2
+            ].filter(ans => ans > 0);
+            
+            const allAnswers = [correctAnswer, ...wrongAnswers.slice(0, 2)].sort(() => Math.random() - 0.5);
+            
+            const gamePlayArea = document.getElementById('gamePlayArea');
+            gamePlayArea.innerHTML = `
+                <div class="letter-game">
+                    <div class="score">Score: ${gameScore}</div>
+                    <div style="font-size: 2em; margin: 20px;">${num1} + ${num2} = ?</div>
+                    <div class="letter-options">
+                        ${allAnswers.map(answer => 
+                            `<div class="letter-option" onclick="checkMath(${answer}, ${correctAnswer})">${answer}</div>`
+                        ).join('')}
+                    </div>
+                    <button class="new-game-btn" onclick="createMathGame()">Next Problem</button>
+                </div>
+            `;
+        }
+
+        function checkMath(selected, correct) {
+            const options = document.querySelectorAll('.letter-option');
+            options.forEach(option => {
+                if (parseInt(option.textContent) === selected) {
+                    if (selected === correct) {
+                        option.classList.add('correct');
+                        gameScore += 10;
+                        setTimeout(() => createMathGame(), 1000);
+                    } else {
+                        option.classList.add('incorrect');
+                    }
+                }
+            });
+        }
+
+        function createWordGame() {
+            const sightWords = ['the', 'and', 'a', 'to', 'said', 'you', 'he', 'it', 'in', 'was', 'for', 'that', 'have', 'they', 'but', 'had', 'what', 'were', 'when', 'who'];
+            const targetWord = sightWords[Math.floor(Math.random() * sightWords.length)];
+            
+            const distractors = sightWords.filter(word => word !== targetWord).slice(0, 2);
+            const allWords = [targetWord, ...distractors].sort(() => Math.random() - 0.5);
+            
+            const gamePlayArea = document.getElementById('gamePlayArea');
+            gamePlayArea.innerHTML = `
+                <div class="letter-game">
+                    <div class="score">Score: ${gameScore}</div>
+                    <div style="font-size: 1.5em; margin: 20px;">Find the word: <strong>${targetWord}</strong></div>
+                    <div class="letter-options">
+                        ${allWords.map(word => 
+                            `<div class="letter-option" style="font-size: 1.5em;" onclick="checkWord('${word}', '${targetWord}')">${word}</div>`
+                        ).join('')}
+                    </div>
+                    <button class="new-game-btn" onclick="createWordGame()">Next Word</button>
+                </div>
+            `;
+        }
+
+        function checkWord(selected, target) {
+            const options = document.querySelectorAll('.letter-option');
+            options.forEach(option => {
+                if (option.textContent === selected) {
+                    if (selected === target) {
+                        option.classList.add('correct');
+                        gameScore += 10;
+                        setTimeout(() => createWordGame(), 1000);
+                    } else {
+                        option.classList.add('incorrect');
+                    }
+                }
+            });
+        }
+
+        function createCountingGame() {
+            const targetNumber = Math.floor(Math.random() * 20) + 1;
+            const circles = '🔵'.repeat(targetNumber);
+            
+            const wrongAnswers = [
+                targetNumber + 1,
+                targetNumber - 1,
+                targetNumber + 2
+            ].filter(ans => ans > 0);
+            
+            const allAnswers = [targetNumber, ...wrongAnswers.slice(0, 2)].sort(() => Math.random() - 0.5);
+            
+            const gamePlayArea = document.getElementById('gamePlayArea');
+            gamePlayArea.innerHTML = `
+                <div class="letter-game">
+                    <div class="score">Score: ${gameScore}</div>
+                    <div style="font-size: 1.5em; margin: 20px;">Count the circles:</div>
+                    <div style="font-size: 2em; margin: 20px; line-height: 1.2;">${circles}</div>
+                    <div class="letter-options">
+                        ${allAnswers.map(answer => 
+                            `<div class="letter-option" onclick="checkCount(${answer}, ${targetNumber})">${answer}</div>`
+                        ).join('')}
+                    </div>
+                    <button class="new-game-btn" onclick="createCountingGame()">Next Count</button>
+                </div>
+            `;
+        }
+
+        function checkCount(selected, correct) {
+            const options = document.querySelectorAll('.letter-option');
+            options.forEach(option => {
+                if (parseInt(option.textContent) === selected) {
+                    if (selected === correct) {
+                        option.classList.add('correct');
+                        gameScore += 10;
+                        setTimeout(() => createCountingGame(), 1000);
+                    } else {
+                        option.classList.add('incorrect');
+                    }
+                }
+            });
+        }
+
+        function createRhymeGame() {
+            const rhymePairs = [
+                ['cat', 'hat'], ['dog', 'log'], ['sun', 'fun'], ['book', 'look'], 
+                ['car', 'star'], ['bee', 'tree'], ['fish', 'dish'], ['ring', 'sing']
+            ];
+            
+            const currentPair = rhymePairs[Math.floor(Math.random() * rhymePairs.length)];
+            const targetWord = currentPair[0];
+            const rhymeWord = currentPair[1];
+            
+            const nonRhymes = ['apple', 'house', 'water', 'happy', 'green'].filter(word => 
+                !currentPair.includes(word)
+            ).slice(0, 2);
+            
+            const allWords = [rhymeWord, ...nonRhymes].sort(() => Math.random() - 0.5);
+            
+            const gamePlayArea = document.getElementById('gamePlayArea');
+            gamePlayArea.innerHTML = `
+                <div class="letter-game">
+                    <div class="score">Score: ${gameScore}</div>
+                    <div style="font-size: 1.5em; margin: 20px;">Which word rhymes with: <strong>${targetWord}</strong>?</div>
+                    <div class="letter-options">
+                        ${allWords.map(word => 
+                            `<div class="letter-option" style="font-size: 1.2em;" onclick="checkRhyme('${word}', '${rhymeWord}')">${word}</div>`
+                        ).join('')}
+                    </div>
+                    <button class="new-game-btn" onclick="createRhymeGame()">Next Rhyme</button>
+                </div>
+            `;
+        }
+
+        function checkRhyme(selected, correct) {
+            const options = document.querySelectorAll('.letter-option');
+            options.forEach(option => {
+                if (option.textContent === selected) {
+                    if (selected === correct) {
+                        option.classList.add('correct');
+                        gameScore += 10;
+                        setTimeout(() => createRhymeGame(), 1000);
+                    } else {
+                        option.classList.add('incorrect');
+                    }
+                }
+            });
+        }
+
+        function showInputSection() {
+            document.getElementById('inputSection').style.display = 'block';
+            document.getElementById('gameArea').style.display = 'none';
+        }
+
+        // Custom Notification System
+        function showNotification(title, message, type = 'info', duration = 4000) {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            // Get appropriate emoji based on type
+            let emoji = '';
+            switch(type) {
+                case 'success':
+                    emoji = '🎉';
+                    break;
+                case 'level-up':
+                    emoji = '🎓';
+                    break;
+                case 'info':
+                    emoji = 'ℹ️';
+                    break;
+                default:
+                    emoji = '🎮';
+            }
+            
+            notification.innerHTML = `
+                <button class="notification-close" onclick="closeNotification(this)">×</button>
+                <div class="notification-content">
+                    <div class="notification-title">
+                        <span>${emoji}</span>
+                        <span>${title}</span>
+                    </div>
+                    <div class="notification-message">${message}</div>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Auto-remove after specified duration
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    closeNotification(notification.querySelector('.notification-close'));
+                }
+            }, duration);
+        }
+
+        function closeNotification(button) {
+            const notification = button.parentNode;
+            notification.classList.add('sliding-out');
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }
+    </script>
+</body>
+</html>
+
